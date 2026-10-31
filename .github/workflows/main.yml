@@ -22,6 +22,8 @@ jobs:
   with:
     packages: platform-tools
   with:
+    packages: platform-tools
+  with:
     packages: platform-tools 
            distribution: temurin
           - name: Set up Android SDK
