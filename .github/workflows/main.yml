@@ -20,6 +20,8 @@ jobs:
          with:- name: Set up Android SDK
   uses: android-actions/setup-android@v3
   with:
+    packages: platform-tools
+  with:
     packages: platform-tools 
            distribution: temurin
           - name: Set up Android SDK
