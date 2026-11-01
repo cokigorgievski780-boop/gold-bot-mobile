@@ -1,3 +1,4 @@
+
 name: Build GOLD BOT APK
 
 on:
@@ -5,46 +6,62 @@ on:
   push:
     branches:
       - main
+
 permissions:
   contents: read
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Set up Java
         uses: actions/setup-java@v4
-         with:- name: Set up Android SDK
-  uses: android-actions/setup-android@v3
-  with:
-    packages: platform-tools
-  with:
-    packages: platform-tools
-  with:
-    packages: platform-tools 
-           distribution: temurin
-          - name: Set up Android SDK
-  uses: android-actions/setup-android@v3
-- name: Set up Android SDK
-  uses: android-actions/setup-android@v3
-  with:
-    packages: platform-tools    - name: Set up Gradle
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+
+      - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.7'
 
-      - name: Unpack project
-        run: unzip -q GOLD_BOT_DOWNLOAD.zip
+      - name: Extract GOLD BOT project
+        run: |
+          unzip -q GOLD_BOT_DOWNLOAD.zip -d project
 
-      - name: Build APK
-        working-directory: gold_bot_mobile_starter/android
-        run: gradle assembleDebug
+      - name: Find Android project
+        id: project
+        run: |
+          PROJECT_DIR=$(find project -type f \( -name settings.gradle -o -name settings.gradle.kts \) -print -quit | xargs dirname)
+          if [ -z "$PROJECT_DIR" ]; then
+            echo "Android project was not found"
+            exit 1
+          fi
+          echo "dir=$PROJECT_DIR" >> "$GITHUB_OUTPUT"
 
-      - name: Save APK
+      - name: Build GOLD BOT APK
+        working-directory: ${{ steps.project.outputs.dir }}
+        run: |
+          if [ -f gradlew ]; then
+            chmod +x gradlew
+            ./gradlew assembleDebug
+          else
+            gradle assembleDebug
+          fi
+
+      - name: Upload GOLD BOT APK
         uses: actions/upload-artifact@v4
         with:
           name: GOLD-BOT-APK
-          path: gold_bot_mobile_starter/android/app/build/outputs/apk/debug/app-debug.apk
+          path: project/**/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          
